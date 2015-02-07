@@ -63,13 +63,13 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call(find_match, From, S = #state{pool = Pool}) ->
-    monitor(process, From),
+handle_call(find_match, {Pid, _}, S = #state{pool = Pool}) ->
+    monitor(process, Pid),
     NewPool =
-        case matchmaker_pool:match_player(Pool, From) of
+        case matchmaker_pool:match_player(Pool, Pid) of
             {no_match, P} -> P;
             {match, Opponent, P} ->
-                gen_server:cast(self(), {match_found, {From, Opponent}}),
+                gen_server:cast(self(), {match_found, {Pid, Opponent}}),
                 P
         end,
     {reply, ok, S#state{pool = NewPool}};
@@ -88,9 +88,8 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast({match_found, {Player1, Player2}}, S) ->
-    demonitor(Player1),
-    demonitor(Player2),
+handle_cast({match_found, {_Player1, _Player2}}, S) ->
+    %% TODO: Demonitor players
     %% TODO: Start a game.
     {noreply, S};
 
