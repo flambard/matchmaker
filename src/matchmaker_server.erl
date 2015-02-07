@@ -1,4 +1,4 @@
--module(matchmaker).
+-module(matchmaker_server).
 -behaviour(gen_server).
 
 %% API
