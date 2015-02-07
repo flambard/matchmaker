@@ -4,9 +4,10 @@
   {modules, [ matchmaker
             , matchmaker_app
             , matchmaker_pool
+            , matchmaker_server
             , matchmaker_sup
             ]},
-  {registered, [ matchmaker
+  {registered, [ matchmaker_sup
                ]},
   {mod, {matchmaker_app, []}},
   {applications, [ kernel
