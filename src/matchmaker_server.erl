@@ -3,7 +3,7 @@
 
 %% API
 -export([ start_link/0
-        , find_match/0
+        , find_match/1
         ]).
 
 %% gen_server callbacks
@@ -15,8 +15,6 @@
         , code_change/3
         ]).
 
--define(SERVER, ?MODULE).
-
 -record(state,
         { pool
         }).
@@ -27,10 +25,10 @@
 %%%===================================================================
 
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
-find_match() ->
-    gen_server:call(?SERVER, find_match).
+find_match(Server) ->
+    gen_server:call(Server, find_match).
 
 
 %%%===================================================================
@@ -71,7 +69,7 @@ handle_call(find_match, From, S = #state{pool = Pool}) ->
         case matchmaker_pool:match_player(Pool, From) of
             {no_match, P} -> P;
             {match, Opponent, P} ->
-                gen_server:cast(?SERVER, {match_found, {From, Opponent}}),
+                gen_server:cast(self(), {match_found, {From, Opponent}}),
                 P
         end,
     {reply, ok, S#state{pool = NewPool}};
