@@ -3,7 +3,7 @@
 
 %% API
 -export([ start_link/0
-        , find_match/1
+        , find_match/2
         ]).
 
 %% gen_server callbacks
@@ -27,8 +27,8 @@
 start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
-find_match(Server) ->
-    gen_server:call(Server, find_match).
+find_match(Server, Pid) ->
+    gen_server:call(Server, {find_match, Pid}).
 
 
 %%%===================================================================
@@ -63,7 +63,7 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call(find_match, {Pid, _}, S = #state{pool = Pool}) ->
+handle_call({find_match, Pid}, _From, S = #state{pool = Pool}) ->
     monitor(process, Pid),
     NewPool =
         case matchmaker_pool:match_player(Pool, Pid) of

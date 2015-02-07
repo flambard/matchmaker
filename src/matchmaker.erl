@@ -2,7 +2,7 @@
 
 %% API
 -export([ new/0
-        , find_match/1
+        , find_match/2
         ]).
 
 %%%===================================================================
@@ -12,8 +12,8 @@
 new() ->
     matchmaker_sup:start_matchmaker_server().
 
-find_match(Matchmaker) ->
-    matchmaker_server:find_match(Matchmaker).
+find_match(Matchmaker, Pid) ->
+    matchmaker_server:find_match(Matchmaker, Pid).
 
 
 %%%===================================================================
