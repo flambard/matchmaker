@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 
 %% API
--export([ start_link/0
+-export([ start_link/2
         , find_match/2
         ]).
 
@@ -17,6 +17,8 @@
 
 -record(state,
         { pool
+        , game_supervisor_module
+        , game_settings_module
         }).
 
 
@@ -24,8 +26,8 @@
 %%% API
 %%%===================================================================
 
-start_link() ->
-    gen_server:start_link(?MODULE, [], []).
+start_link(GameSupMod, GameSettingsMod) ->
+    gen_server:start_link(?MODULE, [GameSupMod, GameSettingsMod], []).
 
 find_match(Server, Pid) ->
     gen_server:call(Server, {find_match, Pid}).
@@ -46,8 +48,11 @@ find_match(Server, Pid) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([]) ->
-    {ok, #state{pool = matchmaker_pool:new()}}.
+init([GameSupMod, GameSettingsMod]) ->
+    {ok, #state{ pool = matchmaker_pool:new()
+               , game_supervisor_module = GameSupMod
+               , game_settings_module = GameSettingsMod
+               }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -88,10 +93,16 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast({match_found, {{_Player1, M1}, {_Player2, M2}}}, S) ->
+handle_cast({match_found, {{Player1, M1}, {Player2, M2}}}, S) ->
     demonitor(M1),
     demonitor(M2),
-    %% TODO: Start a game.
+    %% TODO: Desired game settings should be included when registering in the
+    %% matchmaker pool
+    %% TODO: Handicap should be calculated by the difference in rank between
+    %% the players
+    SettingsMod = S#state.game_settings_module,
+    SupMod = S#state.game_supervisor_module,
+    SupMod:start_game(Player1, Player2, SettingsMod:new(), matchmaker),
     {noreply, S};
 
 handle_cast(_Msg, State) ->
