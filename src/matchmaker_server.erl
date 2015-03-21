@@ -3,6 +3,7 @@
 
 %% API
 -export([ start_link/2
+        , start_link/3
         , find_match/2
         ]).
 
@@ -28,6 +29,12 @@
 
 start_link(GameSupMod, GameSettingsMod) ->
     gen_server:start_link(?MODULE, [GameSupMod, GameSettingsMod], []).
+
+start_link(Name, GameSupMod, GameSettingsMod) ->
+    gen_server:start_link({local, Name},
+                          ?MODULE,
+                          [GameSupMod, GameSettingsMod],
+                          []).
 
 find_match(Server, Pid) ->
     gen_server:call(Server, {find_match, Pid}).

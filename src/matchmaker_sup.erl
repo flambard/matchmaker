@@ -4,6 +4,7 @@
 %% API
 -export([ start_link/0
         , start_matchmaker_server/2
+        , start_matchmaker_server/3
         ]).
 
 %% Supervisor callbacks
@@ -22,6 +23,16 @@ start_link() ->
 start_matchmaker_server(GameSupMod, GameSettingsMod) ->
     ChildSpec = {make_ref(),
                  {matchmaker_server, start_link, [GameSupMod, GameSettingsMod]},
+                 transient,
+                 2000,
+                 worker,
+                 [matchmaker_server]},
+    supervisor:start_child(?SERVER, ChildSpec).
+
+start_matchmaker_server(Name, GameSupMod, GameSettingsMod) ->
+    ChildSpec = {make_ref(),
+                 {matchmaker_server, start_link,
+                  [Name, GameSupMod, GameSettingsMod]},
                  transient,
                  2000,
                  worker,
