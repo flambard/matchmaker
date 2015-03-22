@@ -2,8 +2,8 @@
 -behaviour(gen_server).
 
 %% API
--export([ start_link/2
-        , start_link/3
+-export([ start_link/1
+        , start_link/2
         , find_match/2
         ]).
 
@@ -17,9 +17,8 @@
         ]).
 
 -record(state,
-        { pool
-        , game_supervisor_module
-        , game_settings_module
+        { callback_module
+        , pool
         }).
 
 
@@ -27,13 +26,13 @@
 %%% API
 %%%===================================================================
 
-start_link(GameSupMod, GameSettingsMod) ->
-    gen_server:start_link(?MODULE, [GameSupMod, GameSettingsMod], []).
+start_link(CallbackMod) ->
+    gen_server:start_link(?MODULE, [CallbackMod], []).
 
-start_link(Name, GameSupMod, GameSettingsMod) ->
+start_link(Name, CallbackMod) ->
     gen_server:start_link({local, Name},
                           ?MODULE,
-                          [GameSupMod, GameSettingsMod],
+                          [CallbackMod],
                           []).
 
 find_match(Server, Pid) ->
@@ -55,10 +54,9 @@ find_match(Server, Pid) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([GameSupMod, GameSettingsMod]) ->
-    {ok, #state{ pool = matchmaker_pool:new()
-               , game_supervisor_module = GameSupMod
-               , game_settings_module = GameSettingsMod
+init([CallbackMod]) ->
+    {ok, #state{ callback_module = CallbackMod
+               , pool = matchmaker_pool:new()
                }}.
 
 %%--------------------------------------------------------------------
@@ -107,9 +105,8 @@ handle_cast({match_found, {{Player1, M1}, {Player2, M2}}}, S) ->
     %% matchmaker pool
     %% TODO: Handicap should be calculated by the difference in rank between
     %% the players
-    SettingsMod = S#state.game_settings_module,
-    SupMod = S#state.game_supervisor_module,
-    SupMod:start_game(Player1, Player2, SettingsMod:new(), matchmaker),
+    Mod = S#state.callback_module,
+    Mod:start_game(Player1, Player2),
     {noreply, S};
 
 handle_cast(_Msg, State) ->
