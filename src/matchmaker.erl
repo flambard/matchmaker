@@ -11,27 +11,31 @@
                      {Player2 :: pid(), Info2 :: term()}) ->
     ok.
 
+-type matchmaker_ref() :: atom() | pid().
+
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
--spec start_matchmaker(CallbackMod :: atom()) ->
+-spec start_matchmaker(CallbackMod :: module()) ->
                               {ok, Matchmaker :: pid()} |
                               {error, term()}.
 start_matchmaker(CallbackMod) ->
     matchmaker_sup:start_matchmaker_server(CallbackMod).
 
--spec start_matchmaker(Name :: atom(), CallbackMod :: atom()) ->
+-spec start_matchmaker(Name :: atom(), CallbackMod :: module()) ->
                               {ok, Matchmaker :: pid()} |
                               {error, term()}.
 start_matchmaker(Name, CallbackMod) ->
     matchmaker_sup:start_matchmaker_server(Name, CallbackMod).
 
--spec find_match(Matchmaker :: atom() | pid(), Pid :: pid(), Info :: term()) ->
+-spec find_match(MatchmakerRef :: matchmaker_ref(),
+                 Player :: pid(),
+                 Info :: term()) ->
                         ok.
-find_match(Matchmaker, Pid, Info) ->
-    matchmaker_server:find_match(Matchmaker, Pid, Info).
+find_match(MatchmakerRef, Player, Info) ->
+    matchmaker_server:find_match(MatchmakerRef, Player, Info).
 
 
 %%%===================================================================
