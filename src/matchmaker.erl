@@ -16,12 +16,20 @@
 %%% API
 %%%===================================================================
 
+-spec start_matchmaker(CallbackMod :: atom()) ->
+                              {ok, Matchmaker :: pid()} |
+                              {error, term()}.
 start_matchmaker(CallbackMod) ->
     matchmaker_sup:start_matchmaker_server(CallbackMod).
 
+-spec start_matchmaker(Name :: atom(), CallbackMod :: atom()) ->
+                              {ok, Matchmaker :: pid()} |
+                              {error, term()}.
 start_matchmaker(Name, CallbackMod) ->
     matchmaker_sup:start_matchmaker_server(Name, CallbackMod).
 
+-spec find_match(Matchmaker :: atom() | pid(), Pid :: pid(), Info :: term()) ->
+                        ok.
 find_match(Matchmaker, Pid, Info) ->
     matchmaker_server:find_match(Matchmaker, Pid, Info).
 
