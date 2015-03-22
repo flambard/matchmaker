@@ -18,17 +18,17 @@
 %%% API
 %%%===================================================================
 
--spec start_matchmaker(CallbackMod :: module()) ->
+-spec start_matchmaker(Module :: module()) ->
                               {ok, Matchmaker :: pid()} |
                               {error, term()}.
-start_matchmaker(CallbackMod) ->
-    matchmaker_sup:start_matchmaker_server(CallbackMod).
+start_matchmaker(Module) ->
+    matchmaker_sup:start_matchmaker_server(Module).
 
--spec start_matchmaker(Name :: atom(), CallbackMod :: module()) ->
+-spec start_matchmaker(Name :: atom(), Module :: module()) ->
                               {ok, Matchmaker :: pid()} |
                               {error, term()}.
-start_matchmaker(Name, CallbackMod) ->
-    matchmaker_sup:start_matchmaker_server(Name, CallbackMod).
+start_matchmaker(Name, Module) ->
+    matchmaker_sup:start_matchmaker_server(Name, Module).
 
 -spec find_match(MatchmakerRef :: matchmaker_ref(),
                  Player :: pid(),
