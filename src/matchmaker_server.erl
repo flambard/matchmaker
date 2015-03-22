@@ -4,7 +4,7 @@
 %% API
 -export([ start_link/1
         , start_link/2
-        , find_match/2
+        , find_match/3
         ]).
 
 %% gen_server callbacks
@@ -35,8 +35,8 @@ start_link(Name, CallbackMod) ->
                           [CallbackMod],
                           []).
 
-find_match(Server, Pid) ->
-    gen_server:call(Server, {find_match, Pid}).
+find_match(Server, Pid, Info) ->
+    gen_server:call(Server, {find_match, Pid, Info}).
 
 
 %%%===================================================================
@@ -73,13 +73,14 @@ init([CallbackMod]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({find_match, Pid}, _From, S = #state{pool = Pool}) ->
+handle_call({find_match, Pid, Info}, _From, S = #state{pool = Pool}) ->
     MRef = monitor(process, Pid),
     NewPool =
-        case matchmaker_pool:match_player(Pool, {Pid, MRef}) of
+        case matchmaker_pool:match_player(Pool, {Pid, Info, MRef}) of
             {no_match, P} -> P;
             {match, Opponent, P} ->
-                gen_server:cast(self(), {match_found, {{Pid, MRef}, Opponent}}),
+                gen_server:cast(self(),
+                                {match_found, {{Pid, Info, MRef}, Opponent}}),
                 P
         end,
     {reply, ok, S#state{pool = NewPool}};
@@ -98,15 +99,11 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast({match_found, {{Player1, M1}, {Player2, M2}}}, S) ->
+handle_cast({match_found, {{Player1, Info1, M1}, {Player2, Info2, M2}}}, S) ->
     demonitor(M1),
     demonitor(M2),
-    %% TODO: Desired game settings should be included when registering in the
-    %% matchmaker pool
-    %% TODO: Handicap should be calculated by the difference in rank between
-    %% the players
     Mod = S#state.callback_module,
-    Mod:start_game(Player1, Player2),
+    Mod:start_game({Player1, Info1}, {Player2, Info2}),
     {noreply, S};
 
 handle_cast(_Msg, State) ->
